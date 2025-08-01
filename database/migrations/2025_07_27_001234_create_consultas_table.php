@@ -12,9 +12,9 @@ class CreateConsultasTable extends Migration
         Schema::create('consultas', function (Blueprint $table) {
             $table->id();  // Crea una columna 'id' que será la clave primaria y auto-incremental
             // Relación con la tabla 'usuarios' para almacenar quién es el cliente que hizo la consulta
-            $table->foreignId('cliente_id')->constrained('usuarios');  
+            $table->foreignId('cliente_id')->constrained('users');  
             // Relación con la tabla 'usuarios' para almacenar quién es el operador que atenderá la consulta
-            $table->foreignId('operador_id')->nullable()->constrained('usuarios');  
+            $table->foreignId('operador_id')->nullable()->constrained('users');  
             // Crea la columna 'titulo' para almacenar el título de la consulta
             $table->string('titulo');  
             // Crea la columna 'descripcion' para almacenar la descripción detallada de la consulta
@@ -22,9 +22,9 @@ class CreateConsultasTable extends Migration
             // Crea la columna 'estado' para almacenar el estado de la consulta: 'pendiente', 'en proceso', o 'finalizada'
             $table->enum('estado', ['pendiente', 'en proceso', 'finalizada']);  
             // Relación con la tabla 'usuarios' para almacenar quién creó la consulta
-            $table->foreignId('created_by')->nullable()->constrained('usuarios');  
+            $table->foreignId('created_by')->nullable()->constrained('users');  
             // Relación con la tabla 'usuarios' para almacenar quién actualizó la consulta
-            $table->foreignId('updated_by')->nullable()->constrained('usuarios');  
+            $table->foreignId('updated_by')->nullable()->constrained('users');  
             // Crea las columnas 'created_at' y 'updated_at' para gestionar las fechas de creación y actualización de la consulta
             $table->timestamps();  
         });

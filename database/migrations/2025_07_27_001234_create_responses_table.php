@@ -11,10 +11,10 @@ class CreateResponsesTable extends Migration
         Schema::create('responses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('consulta_id')->constrained('consultas');  // Relación con consultas
-            $table->foreignId('usuario_id')->constrained('usuarios');  // Relación con usuarios (quien responde)
+            $table->foreignId('users_id')->constrained('users');  // Relación con usuarios (quien responde)
             $table->text('contenido');  // Contenido de la respuesta
-            $table->foreignId('created_by')->nullable()->constrained('usuarios'); // Usuario que creó la respuesta
-            $table->foreignId('updated_by')->nullable()->constrained('usuarios'); // Usuario que actualizó la respuesta
+            $table->foreignId('created_by')->nullable()->constrained('users'); // Usuario que creó la respuesta
+            $table->foreignId('updated_by')->nullable()->constrained('users'); // Usuario que actualizó la respuesta
             $table->timestamps();
         });
     }
