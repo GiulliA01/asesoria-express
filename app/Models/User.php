@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Support\Facades\Hash; // Importar Hash si lo necesitas para la contraseña
 
 class User extends Authenticatable
 {
@@ -14,21 +15,24 @@ class User extends Authenticatable
     const ROLE_CLIENTE = 'cliente';
     const ROLE_OPERADOR = 'operador';
 
+    // Atributos que se pueden asignar de forma masiva
     protected $fillable = [
         'name',
         'email',
         'password',
-        'rol',  // Asegúrate de incluir 'rol' aquí
+        'rol', // Asegúrate de tener el campo 'rol' si usas roles personalizados
     ];
 
+    // Atributos que se deben ocultar
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
+    // Conversión de datos en base de datos
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'password' => 'hashed', // Si estás usando hashing para la contraseña
     ];
 
     // Método para verificar si el usuario es un cliente
@@ -51,5 +55,29 @@ class User extends Authenticatable
         return $this->belongsToMany(Consulta::class, 'operator_consultations', 'operator_id', 'consulta_id')
                     ->withPivot('status') // Incluye el campo 'status' que existe en la tabla pivot
                     ->whereIn('status', ['pending', 'in_process']); // Filtra por los estados deseados
+    }
+
+    /**
+     * Método estático para comprobar si el nombre o correo ya existen.
+     */
+    public static function checkIfExists($name, $email)
+    {
+        return self::where('name', $name)
+                   ->orWhere('email', $email)
+                   ->exists();
+    }
+
+    /**
+     * Método para encriptar la contraseña antes de guardarla.
+     */
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($user) {
+            if (isset($user->password)) {
+                $user->password = Hash::make($user->password); // Encripta la contraseña si está definida
+            }
+        });
     }
 }

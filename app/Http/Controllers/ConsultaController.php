@@ -27,6 +27,17 @@ class ConsultaController extends Controller
             'descripcion' => 'required|string',
         ]);
 
+        // Verificar si ya existe una consulta con el mismo título y descripción para el usuario autenticado
+        $existingConsulta = Consulta::where('titulo', $request->titulo)
+                                    ->where('descripcion', $request->descripcion)
+                                    ->where('cliente_id', auth()->id()) // Solo para el cliente autenticado
+                                    ->first();
+
+        if ($existingConsulta) {
+            // Si la consulta ya existe, redirigir con un mensaje de error
+            return back()->withErrors(['error' => 'Ya existe una consulta con este título y descripción.']);
+        }
+
         // Crear la consulta en la base de datos
         $consulta = new Consulta();
         $consulta->titulo = $request->titulo; // Título de la consulta
@@ -39,7 +50,7 @@ class ConsultaController extends Controller
         // Asignar la consulta al operador disponible
         $this->assignConsultaToOperator($consulta->id);
 
-        // Redirigir a la misma página con un mensaje de éxito
+        // Redirigir con mensaje de éxito
         return back()->with('success', 'Consulta enviada correctamente.');
     }
 
@@ -87,8 +98,8 @@ class ConsultaController extends Controller
      */
     public function index(Request $request)
     {
-        // Consultas principales
-        $consultas = Consulta::query();
+        // Obtener las consultas del usuario autenticado
+        $consultas = Consulta::where('cliente_id', auth()->id()); // Filtrar por el cliente autenticado
 
         // Filtro por fecha si existe
         if ($request->date_filter) {

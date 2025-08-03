@@ -14,6 +14,7 @@
     <!-- Cargar Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
+
     <!-- Cargar los estilos con Vite (Tailwind CSS) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -62,9 +63,9 @@
         }
 
         .nav-link.active {
-            color: #003566; /* Color personalizado para el enlace activo */
-            font-weight: bold; /* O puedes hacer que se vea más destacado */
-        }
+        color: #003566; /* Color personalizado para el enlace activo */
+        font-weight: bold; /* O puedes hacer que se vea más destacado */
+    }
 
         footer {
             background-color: #fff;
@@ -183,42 +184,71 @@
 
     </style>
 </head>
-<body>
-    <!-- Contenedor principal -->
+<body>    
+<!-- Contenedor principal -->
     <div class="min-h-screen d-flex flex-column">
         
         <!-- Barra de navegación -->
         <header>
+            <!-- Barra de navegación -->
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <div class="container-fluid">
+                    <!-- Logo y Título de Navegación -->
+                    <a class="navbar-brand" href="{{ route('welcome') }}">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo">
+                        <span>ConsultaFlex</span>
+                    </a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav ms-auto">
+                            @auth
+                                @if (Auth::user()->rol == 'cliente')
+                                    <!-- Opciones para 'cliente' -->
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Mis Consultas</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->routeIs('consultas.create') ? 'active' : '' }}" href="{{ route('consultas.create') }}">Crear Consulta</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="nav-link btn btn-link text-decoration-none">
+                                                <i class="bi bi-box-arrow-right me-1"></i> Cerrar sesión
+                                            </button>
+                                        </form>
+                                    </li>
 
-        <!-- Barra de navegación -->
-        <nav class="navbar navbar-expand-lg navbar-light">
-            <div class="container-fluid">
-                <!-- Logo y Título de Navegación -->
-                <a class="navbar-brand" href="{{ route('welcome') }}">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo">
-                    <span>ConsultaFlex</span>
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">Mis Consultas</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ request()->routeIs('consultas.create') ? 'active' : '' }}" href="{{ route('consultas.create') }}">Crear Consulta</a>
-                        </li>
-                    </ul>
+                                @elseif (Auth::user()->rol == 'operador')
+                                    <!-- Opciones para 'operador' -->
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->routeIs('operador.dashboard') ? 'active' : '' }}" href="{{ route('operador.dashboard') }}">Dashboard Operador</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->routeIs('operador.consultas') ? 'active' : '' }}" href="{{ route('operador.consultas') }}">Gestión Consultas</a>
+                                    </li>
+                                    <!-- Opción de Cerrar Sesión -->
+                                    <li class="nav-item">
+                                        <form action="{{ route('logout') }}" method="POST" style="display: inline;">
+                                            @csrf
+                                            <button type="submit" class="nav-link btn btn-link text-decoration-none">
+                                                <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                                            </button>
+                                        </form>
+                                    </li>
+                                @endif
+                            @endauth
+                        </ul>
+                    </div>
                 </div>
-            </div>
-        </nav>
-
+            </nav>
         </header>
 
         <!-- Contenido principal -->
         <main class="flex-grow-1">
-                @yield('content') <!-- Aquí se inserta el contenido específico de cada página -->
+            @yield('content') <!-- Aquí se inserta el contenido específico de cada página -->
         </main>
 
         <!-- Pie de página -->

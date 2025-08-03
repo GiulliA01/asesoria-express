@@ -3,140 +3,71 @@
 namespace App\Http\Controllers;
 
 use App\Models\Consulta;
-use App\Models\OperatorConsultation;
-use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OperadorController extends Controller
 {
     /**
-     * Muestra las consultas asignadas y finalizadas al operador.
-     *
-     * @return \Illuminate\View\View
+     * Mostrar las consultas asignadas al operador.
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Obtener consultas asignadas (pendientes y en proceso) al operador actual
-        $consultas = Consulta::whereIn('estado', ['pendiente', 'en proceso'])
-                             ->whereHas('operatorConsultations', function ($query) {
-                                 $query->where('operator_id', auth()->id());
-                             })
-                             ->get();
+        // Filtrar las consultas asignadas al operador
+        $consultas = Consulta::whereHas('operatorConsultations', function ($query) {
+            $query->where('operator_id', Auth::id());
+        })->whereIn('estado', ['pendiente', 'en proceso'])->get();
 
-        // Obtener consultas finalizadas
-        $finalizadas = Consulta::where('estado', 'finalizada')
-                               ->whereHas('operatorConsultations', function ($query) {
-                                   $query->where('operator_id', auth()->id());
-                               })
-                               ->get();
+        // Consultas finalizadas
+        $finalizadas = Consulta::where('estado', 'finalizado')
+            ->whereHas('operatorConsultations', function ($query) {
+                $query->where('operator_id', Auth::id());
+            })
+            ->get();
 
-        // Pasar los datos a la vista
+        // Pasar las consultas a la vista
         return view('operador.dashboard', compact('consultas', 'finalizadas'));
     }
 
     /**
      * Aceptar una consulta asignada.
-     *
-     * @param  int  $consulta_id
-     * @return \Illuminate\Http\RedirectResponse
      */
-    public function accept($consulta_id)
+    public function accept(Consulta $consulta)
     {
-        // Obtener la consulta
-        $consulta = Consulta::findOrFail($consulta_id);
-
-        // Cambiar el estado de la consulta a "en proceso"
-        $consulta->update(['estado' => 'en proceso']);
-
-        // Marcar la consulta como aceptada para este operador
-        $operator_consultation = OperatorConsultation::where('consulta_id', $consulta_id)
-                                                     ->where('operator_id', auth()->id())
-                                                     ->first();
-        $operator_consultation->update(['status' => 'accepted']);
-
-        // Redirigir a la página de consultas
-        return redirect()->route('operator.dashboard');
-    }
-
-    /**
-     * Rechazar una consulta asignada y asignarla a otro operador.
-     *
-     * @param  int  $consulta_id
-     * @return \Illuminate\Http\RedirectResponse
-     */
-    public function reject($consulta_id)
-    {
-        // Obtener la consulta
-        $consulta = Consulta::findOrFail($consulta_id);
-
-        // Cambiar el estado de la consulta a "pendiente" (sin perder la consulta original)
-        $consulta->update(['estado' => 'pendiente']); // Mantener el estado como pendiente
-
-        // Cambiar el estado de la consulta a "rechazada" para este operador
-        $operator_consultation = OperatorConsultation::where('consulta_id', $consulta_id)
-                                                     ->where('operator_id', auth()->id())
-                                                     ->first();
-        $operator_consultation->update(['status' => 'rejected']); // Marcar la consulta como rechazada
-
-        // Asignar la consulta a otro operador disponible (que no sea el mismo operador)
-        $new_operator = User::where('rol', 'operador')->where('id', '!=', auth()->id())->inRandomOrder()->first(); // Excluir el operador que la rechazó
-        OperatorConsultation::create([
-            'consulta_id' => $consulta->id,
-            'operator_id' => $new_operator->id,
-            'status' => 'pending',
-        ]);
-
-        // Redirigir con mensaje de confirmación
-        return redirect()->route('operator.dashboard')->with('message', 'Has rechazado esta consulta. Se te enviará una nueva consulta.');
-    }
-
-    /**
-     * Mostrar la pantalla de mensajes con el cliente.
-     *
-     * @param  int  $consulta_id
-     * @return \Illuminate\View\View
-     */
-    public function messages($consulta_id)
-    {
-        // Obtener la consulta
-        $consulta = Consulta::findOrFail($consulta_id);
-
-        // Verificar si el operador tiene acceso a esta consulta
-        if ($consulta->operator_id != auth()->id()) {
-            return redirect()->route('operator.dashboard')->with('error', 'No tienes acceso a esta consulta.');
+        // Verificar que la consulta está asignada al operador
+        if ($consulta->operatorConsultations->contains('operator_id', Auth::id())) {
+            $consulta->update(['estado' => 'en proceso']);
+            return redirect()->route('operador.dashboard')->with('success', 'Consulta aceptada.');
         }
 
-        // Obtener los mensajes de la consulta (respuestas)
-        $responses = $consulta->responses;
-
-        // Pasar los datos a la vista de mensajería
-        return view('operador.messages', compact('consulta', 'responses'));
+        return redirect()->route('operador.dashboard')->with('error', 'No está autorizado a aceptar esta consulta.');
     }
 
     /**
-     * Enviar un mensaje de respuesta al cliente.
-     *
-     * @param  Request  $request
-     * @param  int  $consulta_id
-     * @return \Illuminate\Http\RedirectResponse
+     * Rechazar una consulta asignada.
      */
-    public function sendMessage(Request $request, $consulta_id)
+    public function reject(Consulta $consulta)
     {
-        // Validar el mensaje
-        $request->validate([
-            'message' => 'required|string|max:500',
-        ]);
+        // Verificar que la consulta está asignada al operador
+        if ($consulta->operatorConsultations->contains('operator_id', Auth::id())) {
+            $consulta->update(['estado' => 'rechazada']);
+            return redirect()->route('operador.dashboard')->with('success', 'Consulta rechazada.');
+        }
 
-        // Crear la respuesta en la tabla "responses"
-        $consulta = Consulta::findOrFail($consulta_id);
-        $consulta->responses()->create([
-            'user_id' => auth()->id(),
-            'contenido' => $request->message,
-            'created_by' => auth()->id(),
-            'updated_by' => auth()->id(),
-        ]);
+        return redirect()->route('operador.dashboard')->with('error', 'No está autorizado a rechazar esta consulta.');
+    }
 
-        // Redirigir a la página de mensajería
-        return redirect()->route('operator.messages', $consulta_id)->with('message', 'Tu respuesta fue enviada.');
+    /**
+     * Ver los mensajes de una consulta en proceso.
+     */
+    public function messages(Consulta $consulta)
+    {
+        // Asegurarse de que el operador tiene acceso a la consulta en proceso
+        if ($consulta->estado != 'en proceso' || !$consulta->operatorConsultations->contains('operator_id', Auth::id())) {
+            return redirect()->route('operador.dashboard')->with('error', 'Acción no permitida.');
+        }
+
+        // Pasar los mensajes a la vista
+        return view('operador.messages', compact('consulta'));
     }
 }

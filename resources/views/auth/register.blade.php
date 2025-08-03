@@ -2,12 +2,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registrarse | ConsultaFlex</title>
-    <!-- Incluyendo Font Awesome para los iconos de ojo -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet">
-    <!-- Favicon -->
     <link rel="icon" href="images/logo.png" type="image/png">
     <style>
-        body {
+       body {
             margin: 0;
             padding: 0;
             font-family: 'Poppins', sans-serif;
@@ -20,7 +18,7 @@
 
         .container {
             display: flex;
-            flex-direction: row-reverse; /* Imagen a la derecha */
+            flex-direction: row-reverse; 
             width: 90%;
             max-width: 900px;
             background-color: #ffffff;
@@ -31,13 +29,12 @@
         }
 
         .image-container {
-            flex: 0.7; /* Aumentamos al 70% del contenedor para hacer la imagen más grande */
+            flex: 0.7;
             background: url('https://via.placeholder.com/400x500?text=Imagen+Login') no-repeat center center;
-            background-size: contain; /* Asegura que la imagen se ajuste sin distorsionarse */
+            background-size: contain;
             background-position: center;
-            min-width: 300px; /* Aumentamos el tamaño mínimo para asegurar que la imagen no sea demasiado pequeña */
+            min-width: 300px;
         }
-
 
         .form-container {
             flex: 1;
@@ -57,7 +54,7 @@
             font-weight: bold;
             margin-bottom: 0.5rem;
             display: block;
-            color: #777; /* Gris claro para etiquetas */
+            color: #777;
         }
 
         .input-group {
@@ -79,7 +76,6 @@
             color: #aaa;
         }
 
-        /* Estilos para el icono de ojo */
         .eye-icon {
             position: absolute;
             right: 10px;
@@ -87,7 +83,7 @@
             transform: translateY(-50%);
             color: #aaa;
             cursor: pointer;
-            font-size: 1.3rem; /* Aumento el tamaño del icono */
+            font-size: 1.3rem;
         }
 
         .btn {
@@ -111,12 +107,12 @@
             text-align: center;
             margin-top: 1rem;
             font-size: 0.9rem;
-            color: #777; /* Gris */
+            color: #777;
         }
 
         .forgot-password a,
         .register-link a {
-            color: #003566; /* Color azul para los enlaces */
+            color: #003566;
             text-decoration: none;
         }
 
@@ -125,13 +121,50 @@
             text-decoration: underline;
         }
 
+        /* Mejoras en los mensajes de éxito y error */
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .alert-success {
+            background-color: #4CAF50;
+        }
+
+        .alert-error {
+            background-color: #f44336;
+        }
+
+        .alert .icon {
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+
+        .alert .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .alert .close-btn:hover {
+            color: #ddd;
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
                 width: 100%;
                 max-width: 100%;
                 margin: 0 auto;
-                padding-left: 15px; 
+                padding-left: 15px;
                 padding-right: 15px;
                 box-sizing: border-box;
             }
@@ -186,82 +219,93 @@
 <body>
 
     <div class="container">
-        <!-- Imagen de fondo a la derecha -->
         <div class="image-container" style="background-image: url('{{ asset('images/logo.png') }}');"></div>
 
         <div class="form-container">
             <h2>Crear Cuenta</h2>
 
+            <!-- Mostrar el mensaje de éxito (si existe) -->
+            @if(session('success'))
+                <div class="alert alert-success">
+                    <span class="icon"><i class="fas fa-check-circle"></i></span>
+                    {{ session('success') }}
+                    <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+                </div>
+            @endif
+
+            <!-- Mostrar los errores generales de validación -->
+            @if($errors->any())
+                <div class="alert alert-error">
+                    <span class="icon"><i class="fas fa-exclamation-circle"></i></span>
+                    <ul>
+                        @foreach($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                    <button class="close-btn" onclick="this.parentElement.style.display='none'">&times;</button>
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('register') }}">
                 @csrf
 
-                <!-- Nombre -->
                 <div class="input-group">
                     <label for="name" class="input-label">{{ __('Nombre') }}</label>
-                    <input id="name" class="input-field" type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="Ingresa tu nombre" />
-                    @error('name') <p class="error-message">{{ $message }}</p> @enderror
+                    <input id="name" class="input-field" type="text" name="name" value="{{ old('name') }}" required autofocus placeholder="Ingresa tu nombre y apellido" />
+                    @error('name') <p class="error-message" style="color: red;">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Correo electrónico -->
                 <div class="input-group">
                     <label for="email" class="input-label">{{ __('Correo electrónico') }}</label>
                     <input id="email" class="input-field" type="email" name="email" value="{{ old('email') }}" required placeholder="Ingresa tu correo electrónico" />
-                    @error('email') <p class="error-message">{{ $message }}</p> @enderror
+                    @error('email') <p class="error-message" style="color: red;">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Contraseña -->
                 <div class="input-group">
                     <label for="password" class="input-label">{{ __('Contraseña') }}</label>
                     <input id="password" class="input-field" type="password" name="password" required placeholder="Ingresa una contraseña" />
                     <span class="eye-icon" onclick="togglePassword('password')"><i class="fas fa-eye" id="eye-icon"></i></span>
-                    @error('password') <p class="error-message">{{ $message }}</p> @enderror
+                    @error('password') <p class="error-message" style="color: red;">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Confirmar Contraseña -->
                 <div class="input-group">
                     <label for="password_confirmation" class="input-label">{{ __('Confirmar Contraseña') }}</label>
                     <input id="password_confirmation" class="input-field" type="password" name="password_confirmation" required placeholder="Repite tu contraseña" />
                     <span class="eye-icon" onclick="togglePassword('password_confirmation')"><i class="fas fa-eye" id="eye-icon"></i></span>
-                    @error('password_confirmation') <p class="error-message">{{ $message }}</p> @enderror
+                    @error('password_confirmation') <p class="error-message" style="color: red;">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Rol (Selector) -->
                 <div class="input-group">
                     <label for="rol" class="input-label">{{ __('Seleccionar Rol') }}</label>
                     <select name="rol" id="rol" class="input-field">
                         <option value="cliente" {{ old('rol', 'cliente') == 'cliente' ? 'selected' : '' }}>Cliente</option>
-                        <option value="operador" {{ old('rol') == 'operador' ? 'selected' : '' }}>Operador</option>
+                        <option value="admin" {{ old('rol', 'cliente') == 'admin' ? 'selected' : '' }}>Administrador</option>
                     </select>
-                    @error('rol') <p class="error-message">{{ $message }}</p> @enderror
                 </div>
 
-                <!-- Enlace para redirección al login y botón de registro -->
-                <div class="form-footer">
-                    <!-- Texto de enlace "¿Ya tienes cuenta?" en gris -->
-                    <span class="register-link" style="color: #4a4a4a; font-size: 0.9rem; text-align: center; margin-top: 1rem;">¿Ya tienes cuenta?</span> 
+                <button type="submit" class="btn">{{ __('Registrarse') }}</button>
 
-                    <!-- Enlace "Iniciar sesión" en azul y subrayado al pasar el mouse -->
-                    <a href="{{ route('login') }}" class="login-link" style="color: #003566; font-weight: bold; font-size: 0.9rem; text-decoration: none; margin-left: 5px;">
-                        Iniciar sesión
-                    </a>
-
-                    <!-- Botón de registro -->
-                    <button type="submit" class="btn">{{ __('Registrarse') }}</button>
+                <div class="forgot-password">
+                    <a href="{{ route('login') }}">{{ __('¿Ya tienes cuenta? Iniciar sesión') }}</a>
                 </div>
             </form>
         </div>
     </div>
 
     <script>
-        // Función para mostrar/ocultar la contraseña
+        // Función para mostrar y ocultar la contraseña
         function togglePassword(id) {
-            var passwordField = document.getElementById(id);
-            var type = passwordField.type === "password" ? "text" : "password";
-            passwordField.type = type;
-            var icon = document.getElementById("eye-icon");
-            icon.classList.toggle("fa-eye");
-            icon.classList.toggle("fa-eye-slash");
+            const passwordField = document.getElementById(id);
+            const eyeIcon = document.getElementById('eye-icon');
+
+            if (passwordField.type === "password") {
+                passwordField.type = "text";
+                eyeIcon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                passwordField.type = "password";
+                eyeIcon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
         }
     </script>
-
-
+</body>
+</html>

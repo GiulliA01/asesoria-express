@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ConsultaController; // Importar el controlador de consultas
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+
 
 // Ruta principal (home) de la aplicación
 Route::get('/', function () {
@@ -54,6 +56,11 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/assign-consulta/{consulta_id}', [ConsultaController::class, 'assignConsultaToOperator']);
     Route::get('/operador/dashboard', [OperadorController::class, 'index'])->name('operator.dashboard');
 
+    
+    Route::post('/logout', function () {
+        Auth::logout();
+        return redirect('/login');
+    })->name('logout');
 });
 
 require __DIR__.'/auth.php'; // Cargar las rutas de autenticación

@@ -10,7 +10,7 @@ class AddRolToUsersTable extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             // Solo agregar la columna 'rol' si no existe
-            $table->enum('rol', ['cliente', 'operador'])->default('cliente')->after('email');
+            $table->enum('rol', ['cliente', 'operador', 'gerente'])->default('cliente')->after('email');
         });
     }
 

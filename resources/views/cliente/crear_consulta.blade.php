@@ -135,6 +135,18 @@
         </div>
     @endif
 
+    <!-- Mostrar el mensaje de error si existe -->
+@if($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+
     <!-- Formulario para crear consulta -->
     <form action="{{ route('consultas.store') }}" method="POST">
         @csrf
